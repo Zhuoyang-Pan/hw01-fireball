@@ -1,5 +1,87 @@
 # HW 1: WebGL Fireball
 
+Zhuoyang Pan
+
+Live demo: https://zhuoyang-pan.github.io/hw01-fireball/
+
+![](screenshot.png)
+
+## What's here
+
+An icosphere pushed around by its vertex shader until it looks like a fireball,
+sitting in a procedural night sky. Drag to orbit, scroll to zoom. Every five
+seconds it detonates, swells and settles back down.
+
+**Vertex shader** (`src/shaders/fireball-vert.glsl`) displaces each vertex along
+its normal in two layers:
+
+- low frequency, high amplitude: three sinusoids on x, y and z, each with its
+  own phase speed off `u_Time` so the lobes never line back up. A vertical
+  taper grows them toward the top of the sphere.
+- high frequency, low amplitude: fbm of 3D Perlin noise (surflet version, in
+  `src/shaders/noise.glsl`). The sample point walks down in y with time, so the
+  fine detail crawls up the surface.
+
+The top half also gets pulled into a pinched tip, which is what turns the
+sphere into a teardrop instead of a lumpy ball. Normals are rebuilt by finite
+differences across a tangent basis, otherwise the shading keeps following the
+original sphere and the noise only shows up in the silhouette.
+
+**Fragment shader** (`src/shaders/fireball-frag.glsl`) gets the displacement
+passed down as `fs_Heat`, adds a finer fbm layer of soot and a flicker term,
+and reads a four stop gradient out of it: dark crust, `coolColor` body,
+`hotColor` fire, near-white core. A narrow band right at the crust/fire
+boundary is lit white-hot so it reads as cracks opening up, and a rim term
+keeps the silhouette glowing where the surface faces away from the light.
+
+**Toolbox functions** (`src/shaders/toolbox.glsl`), and where they go:
+
+- `sin`/`cos` for the low frequency displacement and the color flicker
+- `gain` for the teardrop's vertical profile, and to steepen the heat ramp so
+  crust and fire meet at a crisp edge
+- `bias` on the fire to white-hot transition, and on the nebula density
+- `pulse` for the white-hot seam, and the ring in the background glow
+- `sawtooth` for the explosion's 0 to 1 ramp, shaped by `impulse` into a fast
+  swell and a slow settle
+- `easeInOutQuad` to blend in the teardrop stretch without kinking the shoulder
+- `smoothstep` all over, for the gradient stops and the falloffs
+
+## Extra spice: background
+
+`src/shaders/background-frag.glsl` draws the base `Square` as a screen filling
+quad in NDC before the fireball, with the depth test off so it never occludes
+anything. It layers a domain warped fbm nebula, a star field where each cell
+holds at most one star twinkling out of phase with its neighbours, three
+scrolling layers of rising embers, and a pool of light in the fireball's own
+`hotColor` so the ball isn't floating in a black void. The color pickers
+retint the background along with the fireball.
+
+## Controls
+
+- `tesselations` icosphere subdivision level
+- `displacement` amplitude of the low frequency sinusoids
+- `noiseScale` frequency of the fbm detail layer
+- `noiseAmp` amplitude of the fbm detail layer
+- `octaves` fbm octave count
+- `explosion` strength of the detonation; 0 leaves the ball roiling in place
+- `animationSpeed` scales `u_Time`; 0 freezes it
+- `hotColor` / `coolColor` the two ends of the surface gradient
+- `background` toggles the sky
+- `Reset Fireball` puts everything above back to the defaults
+- `Load Scene` rebuilds geometry
+
+## Running
+
+```
+npm install
+npm run dev     # localhost:5660
+npm run build
+```
+
+---
+
+# Original assignment README
+
 <p align="center">
   <img width="360" height="360" src="fireball.png">
 </p>

@@ -29,6 +29,15 @@ class ShaderProgram {
   unifModelInvTr: WebGLUniformLocation;
   unifViewProj: WebGLUniformLocation;
   unifColor: WebGLUniformLocation;
+  unifCoolColor: WebGLUniformLocation;
+  unifCamPos: WebGLUniformLocation;
+  unifDimensions: WebGLUniformLocation;
+  unifTime: WebGLUniformLocation;
+  unifDisplace: WebGLUniformLocation;
+  unifNoiseScale: WebGLUniformLocation;
+  unifNoiseAmp: WebGLUniformLocation;
+  unifOctaves: WebGLUniformLocation;
+  unifExplode: WebGLUniformLocation;
 
   constructor(shaders: Array<Shader>) {
     this.prog = gl.createProgram();
@@ -48,6 +57,15 @@ class ShaderProgram {
     this.unifModelInvTr = gl.getUniformLocation(this.prog, "u_ModelInvTr");
     this.unifViewProj   = gl.getUniformLocation(this.prog, "u_ViewProj");
     this.unifColor      = gl.getUniformLocation(this.prog, "u_Color");
+    this.unifCoolColor  = gl.getUniformLocation(this.prog, "u_CoolColor");
+    this.unifCamPos     = gl.getUniformLocation(this.prog, "u_CamPos");
+    this.unifDimensions = gl.getUniformLocation(this.prog, "u_Dimensions");
+    this.unifTime       = gl.getUniformLocation(this.prog, "u_Time");
+    this.unifDisplace   = gl.getUniformLocation(this.prog, "u_Displace");
+    this.unifNoiseScale = gl.getUniformLocation(this.prog, "u_NoiseScale");
+    this.unifNoiseAmp   = gl.getUniformLocation(this.prog, "u_NoiseAmp");
+    this.unifOctaves    = gl.getUniformLocation(this.prog, "u_Octaves");
+    this.unifExplode    = gl.getUniformLocation(this.prog, "u_Explode");
   }
 
   use() {
@@ -82,6 +100,59 @@ class ShaderProgram {
     this.use();
     if (this.unifColor !== -1) {
       gl.uniform4fv(this.unifColor, color);
+    }
+  }
+
+  setCoolColor(color: vec4) {
+    this.use();
+    if (this.unifCoolColor !== -1) {
+      gl.uniform4fv(this.unifCoolColor, color);
+    }
+  }
+
+  setCameraPos(pos: vec4) {
+    this.use();
+    if (this.unifCamPos !== -1) {
+      gl.uniform4fv(this.unifCamPos, pos);
+    }
+  }
+
+  setDimensions(width: number, height: number) {
+    this.use();
+    if (this.unifDimensions !== -1) {
+      gl.uniform2f(this.unifDimensions, width, height);
+    }
+  }
+
+  setTime(time: number) {
+    this.use();
+    if (this.unifTime !== -1) {
+      gl.uniform1f(this.unifTime, time);
+    }
+  }
+
+  // frequency, amplitude and octave count of the fbm layer
+  setNoise(scale: number, amp: number, octaves: number) {
+    this.use();
+    if (this.unifNoiseScale !== -1) {
+      gl.uniform1f(this.unifNoiseScale, scale);
+    }
+    if (this.unifNoiseAmp !== -1) {
+      gl.uniform1f(this.unifNoiseAmp, amp);
+    }
+    if (this.unifOctaves !== -1) {
+      gl.uniform1i(this.unifOctaves, octaves);
+    }
+  }
+
+  // amplitude of the low frequency sinusoids, and the explosion on top
+  setShape(displace: number, explode: number) {
+    this.use();
+    if (this.unifDisplace !== -1) {
+      gl.uniform1f(this.unifDisplace, displace);
+    }
+    if (this.unifExplode !== -1) {
+      gl.uniform1f(this.unifExplode, explode);
     }
   }
 
